@@ -98,29 +98,24 @@ class MigratePg:
         @bp.cli.command('new', help='Create a new migration file.')
         @click.argument('name')
         def new(name):
-            # Directory.
+            # Diretório.
             migrations_path = self.migrations_path()
 
+            # Obtendo o timestamp atual em UTC.
             now = datetime.utcnow()
-            datestamp = now.date().strftime('%Y%m%d')
+            timestamp = int(now.timestamp())  # Convertendo para inteiro para evitar pontos decimais
 
-            # Order number.
-            i = 1
-            for f in os.listdir(migrations_path):
-                if m := re.match(r'^([0-9]{8})_([0-9]{3})_(\w+)\.sql', f):
-                    if datestamp == m.group(1):
-                        i = int(m.group(2)) + 1 # Next daily number.
-            number = str(i).rjust(3, '0')
+            # Sanitizando o nome para garantir que é válido para um nome de arquivo.
+            name = re.sub(r'\W', '_', name)
 
-            # Name
-            name = re.sub(r'\W', '_', name) # Sanitize
+            # Criando o nome do arquivo usando timestamp e o nome sanitizado.
+            filename = f'{timestamp}_{name}.sql'
+            filepath = os.path.join(migrations_path, filename)  # Usando os.path.join para a correta formação do caminho do arquivo
 
-            # Create file.
-            filename = f'{datestamp}_{number}_{name}.sql'
-            filepath = f'{migrations_path}/{filename}'
-            open(filepath, 'a').close()
+            # Criando o arquivo.
+            with open(filepath, 'a') as f:
+                pass  # Simplesmente cria o arquivo se ele não existir.
 
             print(f'New file: {filepath}')
-
 
         app.register_blueprint(bp)
